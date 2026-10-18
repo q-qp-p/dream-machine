@@ -58,6 +58,10 @@ dream-machine ledger outcomes --merged "<merged PR numbers>" --closed "<closed-u
 dream-machine ledger backlog  --merged "<merged PR numbers>" --closed "<closed-unmerged>" --open "<open PR numbers>"
 \`\`\`
 
+If the \`dream-machine\` CLI is not installed in this checkout, compute the
+same numbers by hand from \`gh\` and the ledger: the open candidate count, and
+merged / (merged + closed-unmerged + open) over candidate PRs. Never estimate.
+
 Pick exactly one MODE, in this order:
 
 1. **CONSOLIDATE** when open candidate PRs ≥ ${track.reviewBacklogLimit} and at least
@@ -100,6 +104,13 @@ reports the branch name.`;
 
 export function v2SelfReview(sr: SelfReview, ledgerPath: string): string {
   const constitution = ROUTINE_CONSTITUTION.map((c) => `- ${c}`).join('\n');
+  const external = sr.configSource
+    ? `\n\nThis routine's config lives outside this checkout, at \`${sr.configSource}\`.
+Do not try to edit it from here. Deliver the candidate as a proposed config diff
+in \`docs/dream-cycle/self-review/<DATE>.md\` (current value, proposed value,
+cluster it targets, frozen forecast) on a draft PR in this repository, and say
+in the PR that a human must apply it to \`${sr.configSource}\` and recompile.`
+    : '';
   return `# STEP 1.6: ROUTINE SELF-REVIEW NIGHT
 
 When \`EPOCHDAY % ${sr.everyDays} == 0\` (\`EPOCHDAY=$(( $(date -u +%s) / 86400 ))\`),
@@ -136,7 +147,7 @@ that touches any of these is REJECT:
 
 ${constitution}
 
-A self-review PR always stays human-review-only, whatever \`prMode\` says.`;
+A self-review PR always stays human-review-only, whatever \`prMode\` says.${external}`;
 }
 
 export function v2Research(depth: ResearchDepth, competitors: string[]): string {
@@ -197,4 +208,25 @@ export function v2SlotNote(sr: SelfReview | undefined): string {
   return sr
     ? `\n\nSelf-review: \`EPOCHDAY=$(( $(date -u +%s) / 86400 ))\`; when \`EPOCHDAY % ${sr.everyDays} == 0\` → DEEP=${SELF_REVIEW_SURFACE} (overrides the slot; see STEP 1.6).`
     : '';
+}
+
+export function v2ScheduleContract(branchPrefix: string): string {
+  return `# SCHEDULE CONTRACT
+
+From ruvnet/core-memory (AGENTS.md rule 5; issue #187). It binds every step below.
+
+1. **Receipts.** Before each external side effect (push, PR, PR comment, label,
+   issue, gist), append an intent line to \`/tmp/schedule-receipts.jsonl\`:
+   \`{"ts","kind":"intent","action","target","inputs_sha256"}\`. After it, append
+   \`{"ts","kind":"result","action","target","outcome":"ok|failed|unknown","ref"}\`.
+   An \`unknown\` outcome is checked on GitHub before any retry; never repeat a
+   side effect that may already have happened. Commit the log beside the night's
+   evidence as \`docs/dream-cycle/receipts/<DATE>.jsonl\` and include it in the
+   FINAL REPORT.
+2. **Duplicate firing.** If origin already has a \`${branchPrefix}<DATE>-*\`
+   branch from an earlier run today, make no remote side effects and end with
+   \`SKIP: already ran <DATE>\`.
+3. **Pinned tooling.** Run external packages only at the exact versions named
+   in this prompt; never \`@latest\` or a bare package name. List every external
+   tool and version actually used in the FINAL REPORT.`;
 }
