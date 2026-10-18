@@ -16,9 +16,9 @@ are not stored in the repo.
 |---|---|---|
 | Distinct nights in `LEDGER.md` on `main` | 37 | `ledger outcomes` |
 | Merge rate seen from `main`'s ledger | 0.969 | ledger PRs with known fate |
-| Open `dream/*` candidate PRs, all draft | 19 (oldest 2026-09-08) | `gh` pulls API |
-| Merge rate including the open queue | 0.608 | `ledger outcomes --open-count 19` |
-| Last merged `dream/*` PR | #177, merged 2026-10-12 | `gh` pulls API |
+| Open `dream/*` candidate PRs, all draft | 19 (oldest 2026-09-08) | `gh` pulls API (external, not in repo) |
+| Merge rate including the open queue | 0.608 | `ledger outcomes --open-count 19` with external fates |
+| Last merged `dream/*` PR | #177, merged 2026-10-12 | `gh` pulls API (external, not in repo) |
 
 Three problems follow.
 

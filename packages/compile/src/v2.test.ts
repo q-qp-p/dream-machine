@@ -82,7 +82,8 @@ describe('v2 compile', () => {
   // self-review PR ready, use the full ready predicate, and never fall through
   // to opening a new PR while the queue is over the limit.
   it('constrains CONSOLIDATE eligibility, progress and the ready predicate', () => {
-    expect(p).toContain('still a draft, recorded verdict ACCEPT, not a');
+    expect(p).toContain("still a draft, verdict ACCEPT in the PR's own Evaluation");
+    expect(p).toContain("posted by this routine's own account");
     expect(p).toContain(`\`${SELF_REVIEW_SURFACE}\` PR`);
     expect(p).toContain(`<!-- ${CONSOLIDATE_MARKER}: <default-branch SHA> -->`);
     expect(p).toContain('run a fresh\n   independent critic and reward-hack check');

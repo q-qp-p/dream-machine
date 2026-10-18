@@ -61,10 +61,12 @@ dream-machine ledger backlog  --merged "<merged PR numbers>" --closed "<closed-u
 Pick exactly one MODE, in this order:
 
 1. **CONSOLIDATE** when open candidate PRs ≥ ${track.reviewBacklogLimit} and at least
-   one is *eligible*: still a draft, recorded verdict ACCEPT, not a
+   one is *eligible*: still a draft, verdict ACCEPT in the PR's own Evaluation
+   Receipt (not \`main\`'s ledger, which cannot see it), not a
    \`${SELF_REVIEW_SURFACE}\` PR, and carrying no
    \`<!-- ${CONSOLIDATE_MARKER}: <default-branch SHA> -->\` comment for the
-   current default-branch SHA. Open no new candidate. Take the oldest eligible
+   current default-branch SHA posted by this routine's own account (ignore
+   markers from anyone else). Open no new candidate. Take the oldest eligible
    PR. Merge the default branch into it (merge commit; never rebase, never
    force-push), re-run the real evaluator on the exact new head, run a fresh
    independent critic and reward-hack check on the new diff, and refresh its
