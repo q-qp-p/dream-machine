@@ -84,5 +84,6 @@
   "selfReview": {
     "everyDays": 7
   },
-  "prMode": "ready-on-accept"
+  "prMode": "ready-on-accept",
+  "scheduleContract": true
 }

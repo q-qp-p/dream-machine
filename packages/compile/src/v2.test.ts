@@ -36,6 +36,9 @@ describe('v2 validation', () => {
     [{ selfReview: { everyDays: 1 } }, /everyDays/],
     [{ selfReview: [] }, /selfReview must be an object/],
     [{ prMode: 'auto-merge' }, /prMode/],
+    [{ scheduleContract: 'yes' }, /scheduleContract must be a boolean/],
+    [{ selfReview: { everyDays: 7, configSource: 'not a source' } }, /configSource/],
+    [{ selfReview: { everyDays: 7, configSource: 'a/b:x`y' } }, /configSource/],
     [{ branchPrefix: 'dream/$(id)' }, /branchPrefix may contain only/],
     [{ branchPrefix: "dream/'x" }, /branchPrefix may contain only/],
   ])('rejects %j', (patch, msg) => {
@@ -54,6 +57,8 @@ describe('v2 compile', () => {
       expect(p1).not.toContain(marker);
     }
     expect(compile({ ...v1, prMode: 'draft' })).toBe(p1);
+    expect(compile({ ...v1, scheduleContract: false })).toBe(p1);
+    expect(p1).not.toContain('# SCHEDULE CONTRACT');
   });
 
   it('is deterministic', () => {
@@ -116,6 +121,20 @@ describe('v2 compile', () => {
     expect(p).toContain('Only when VERDICT=ACCEPT');
     expect(p).toContain('gh pr ready');
     expect(p).not.toContain('even a significant result stays draft');
+  });
+
+  it('renders the schedule contract when enabled', () => {
+    const pc = compile({ ...v2, scheduleContract: true });
+    expect(pc).toContain('# SCHEDULE CONTRACT');
+    expect(pc).toContain('dream/<DATE>-*');
+    expect(pc).toContain('/tmp/schedule-receipts.jsonl');
+  });
+
+  it('routes an external self-review to a proposal PR in the target repo', () => {
+    const pe = compile({ ...v2, selfReview: { everyDays: 7, configSource: 'ruvnet/dream-machine:targets/a.dream.json' } });
+    expect(pe).toContain('lives outside this checkout');
+    expect(pe).toContain('docs/dream-cycle/self-review/<DATE>.md');
+    expect(p).not.toContain('lives outside this checkout');
   });
 
   it('puts the v2 knobs a self-review could abuse into the constitution', () => {

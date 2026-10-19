@@ -57,8 +57,15 @@ export interface ImplementationTrack {
 
 /** Dream Cycle v2: periodic routine self-review night. */
 export interface SelfReview {
-  /** Run when DAYINT % everyDays == 0 (2-60). */
+  /** Run when EPOCHDAY % everyDays == 0 (2-60). */
   everyDays: number;
+  /**
+   * Where this target's dream.config lives when it is NOT in the target's own
+   * checkout, as "owner/repo:path" (e.g. "ruvnet/dream-machine:targets/x.dream.json").
+   * The self-review night then delivers its candidate as a proposed config
+   * diff for a human to apply, since it cannot edit the config directly.
+   */
+  configSource?: string;
 }
 
 /** How the candidate PR is opened. */
@@ -103,6 +110,11 @@ export interface DreamConfig {
   selfReview?: SelfReview;
   /** v2: PR opening mode. Default 'draft' (v1 behavior). */
   prMode?: PrMode;
+  /**
+   * v2: render the schedule contract (side-effect receipts, duplicate-firing
+   * skip) from ruvnet/core-memory issue #187. Omit for v1 behavior.
+   */
+  scheduleContract?: boolean;
 }
 
 export interface ValidationResult {
@@ -371,8 +383,14 @@ function validateV2(config: Partial<DreamConfig>, errors: string[]): void {
     if (!isIntIn(it.reviewBacklogLimit, 1, 100)) errors.push('implementationTrack.reviewBacklogLimit must be an integer from 1 to 100');
   }
   const sr = config.selfReview as unknown;
-  if (sr !== undefined && checkObjectShape(sr, 'selfReview', ['everyDays'], errors)) {
+  if (sr !== undefined && checkObjectShape(sr, 'selfReview', ['everyDays', 'configSource'], errors)) {
     if (!isIntIn(sr.everyDays, 2, 60)) errors.push('selfReview.everyDays must be an integer from 2 to 60');
+    if (sr.configSource !== undefined && (typeof sr.configSource !== 'string' || !/^[\w.-]+\/[\w.-]+:[\w./-]+$/.test(sr.configSource))) {
+      errors.push('selfReview.configSource must look like "owner/repo:path/to/config.json"');
+    }
+  }
+  if (config.scheduleContract !== undefined && typeof config.scheduleContract !== 'boolean') {
+    errors.push('scheduleContract must be a boolean');
   }
   if (config.prMode !== undefined && config.prMode !== 'draft' && config.prMode !== 'ready-on-accept') {
     errors.push('prMode must be "draft" or "ready-on-accept"');
@@ -399,6 +417,7 @@ export function withDefaults(config: DreamConfig): Required<Omit<DreamConfig, Op
     autoMerge: config.autoMerge ?? false,
     ...(config.ruosEvaluation === undefined ? {} : { ruosEvaluation: { ...config.ruosEvaluation } }),
     prMode: config.prMode ?? 'draft',
+    scheduleContract: config.scheduleContract ?? false,
     ...(config.researchDepth === undefined ? {} : { researchDepth: { ...config.researchDepth } }),
     ...(config.implementationTrack === undefined ? {} : { implementationTrack: { ...config.implementationTrack } }),
     ...(config.selfReview === undefined ? {} : { selfReview: { ...config.selfReview } }),

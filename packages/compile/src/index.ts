@@ -16,7 +16,7 @@ import {
   adrPad,
 } from './config.js';
 import { findUnpinnedNpxInvocations } from './supplychain.js';
-import { v2Budget, v2ModeSelection, v2SelfReview, v2Research, v2DraftLine, v2SlotNote } from './v2.js';
+import { v2Budget, v2ModeSelection, v2SelfReview, v2Research, v2DraftLine, v2SlotNote, v2ScheduleContract } from './v2.js';
 
 export * from './config.js';
 export * from './supplychain.js';
@@ -35,6 +35,7 @@ export function compile(config: DreamConfig): string {
 
   sections.push(header(c.repo, c.cron));
   sections.push(invariants(c.extraDisciplines));
+  if (c.scheduleContract) sections.push(v2ScheduleContract(c.branchPrefix));
   sections.push(step0Context(c.slots, c.bonusModuli) + v2SlotNote(c.selfReview));
   sections.push(step05Build(c.buildStep, c.controlPlaneProbes));
   sections.push(c.researchDepth ? v2Budget(c.ledgerPath) : step06Budget(c.ledgerPath));
